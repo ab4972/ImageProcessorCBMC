@@ -1,0 +1,56 @@
+load test_blur_in/cthulhu.jpg cthulhu
+
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+blur cthulhu
+
+save cthulhu out.jpg
+
+exit

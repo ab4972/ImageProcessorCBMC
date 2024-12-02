@@ -1,0 +1,16 @@
+The main issue that I had with implementing the experiment was with the
+\textit{blur\_by\_pixel} algorithm, specifically the deployment of all the 
+threads.\\
+As mentioned in the description of the algorithm, \textit{blur\_by\_pixel} sometimes needs to stop
+midway and allow previous threads to finish and join on them. This comes due to
+the process running out of available threads.\\
+To mittigate this issue, yet still allow for parallelism, I have used the
+pthread\_tryjoin\_np function.\\
+What differentiates it from the normal pthread\_join is that it does not block
+the current thread. If the callee thread did not finish
+execution, the function will just skip, without blocking the caller.\\
+The way in which I am using this function inside \textit{blur\_by\_pixel} is, 
+when a thread spawn fails, it calls pthread\_tryjoin\_np on all the threads that were
+dispatched previously. This way, blur\_by\_pixel manages to free sufficient
+resources to continue running in parallel, while not degrading into a
+sequential algorithm.\\
