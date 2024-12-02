@@ -1,0 +1,2 @@
+save spot_the_difference test_images/a_random_test_name.jpg
+exit
