@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "sod.h"
+#include "simple_sod.h"
 
 #define IO_ERROR -1
 #define MAX_PIXEL_INTENSITY 255.0

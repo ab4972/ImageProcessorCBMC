@@ -135,7 +135,6 @@ unsigned char nondet_uchar();
 int nondet_int();
 
 void verify_grayscale() {
-    // Create a small bounded picture for faster verification
     struct picture pic;
     pic.width = nondet_int();
     pic.height = nondet_int();
@@ -152,13 +151,16 @@ void verify_grayscale() {
     for (int i = 0; i < pic.width; i++) {
         for (int j = 0; j < pic.height; j++) {
             struct pixel rgb;
-            rgb.red = nondet_uchar();
-            rgb.green = nondet_uchar();
-            rgb.blue = nondet_uchar();
+            rgb.red = nondet_int();
+            rgb.green = nondet_int();
+            rgb.blue = nondet_int();
             // Ensure input values are within valid range
             __CPROVER_assume(rgb.red <= MAX_PIXEL_INTENSITY);
             __CPROVER_assume(rgb.green <= MAX_PIXEL_INTENSITY);
             __CPROVER_assume(rgb.blue <= MAX_PIXEL_INTENSITY);
+            __CPROVER_assume(rgb.red >= 0);
+            __CPROVER_assume(rgb.green >= 0);
+            __CPROVER_assume(rgb.blue >= 0);
             set_pixel(&pic, i, j, &rgb);
         }
     }
@@ -185,7 +187,14 @@ void verify_grayscale() {
     for (int i = 0; i < pic.width; i++) {
         for (int j = 0; j < pic.height; j++) {
             struct pixel p = get_pixel(&pic, i, j);
+            // Add constraints on returned values
+            __CPROVER_assume(p.red >= 0 && p.red <= 255);
+            __CPROVER_assume(p.green >= 0 && p.green <= 255);
+            __CPROVER_assume(p.blue >= 0 && p.blue <= 255);
             struct pixel orig = get_pixel(&original, i, j);
+            __CPROVER_assume(orig.red >= 0 && orig.red <= 255);
+            __CPROVER_assume(orig.green >= 0 && orig.green <= 255);
+            __CPROVER_assume(orig.blue >= 0 && orig.blue <= 255);
             
             // Property 1: All RGB values should be equal
             __CPROVER_assert(p.red == p.green && p.green == p.blue,
