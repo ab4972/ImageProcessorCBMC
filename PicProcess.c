@@ -192,6 +192,7 @@ void verify_grayscale() {
             __CPROVER_assume(p.green >= 0 && p.green <= 255);
             __CPROVER_assume(p.blue >= 0 && p.blue <= 255);
             struct pixel orig = get_pixel(&original, i, j);
+            // look at get_pixel function 
             __CPROVER_assume(orig.red >= 0 && orig.red <= 255);
             __CPROVER_assume(orig.green >= 0 && orig.green <= 255);
             __CPROVER_assume(orig.blue >= 0 && orig.blue <= 255);

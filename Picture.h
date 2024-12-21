@@ -6,9 +6,9 @@
 
 // The pixel struct is used to represent a pixel of an image in RGB format
 struct pixel {
-  int red;
-  int green;
-  int blue;
+  unsigned char red;
+  unsigned char green;
+  unsigned char blue;
 };
 
 // The picture struct provides a wrapper for image manipulation
