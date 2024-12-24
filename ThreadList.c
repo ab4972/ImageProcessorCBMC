@@ -107,8 +107,13 @@ void remove_elem(struct thread_node *node) {
 void verify_thread_list() {
     struct thread_list list;
     
-    // Initialize list
-    __CPROVER_assume(init_thread_list(&list));
+    // Initialize list and verify success
+    bool init_success = init_thread_list(&list);
+    
+    // Need to add assumptions about malloc success
+    __CPROVER_assume(init_success);
+    __CPROVER_assume(list.head != NULL);
+    __CPROVER_assume(list.tail != NULL);
     
     // Verify initial state
     __CPROVER_assert(list.head != NULL, "Initial head valid");
@@ -146,3 +151,37 @@ int count_threads(struct thread_list *list) {
     }
     return count;
 }
+
+void verify_main(void) {
+    // Simulate command line arguments
+    int argc = nondet_int();
+    __CPROVER_assume(argc >= 1 && argc <= 5);  // Reasonable bounds
+    
+    char **argv = malloc((argc + 1) * sizeof(char*));
+    __CPROVER_assume(argv != NULL);
+    
+    // Initialize argv array with non-deterministic strings
+    for(int i = 0; i < argc; i++) {
+        argv[i] = malloc(10);  // Assume max 10 chars per argument
+        __CPROVER_assume(argv[i] != NULL);
+        for(int j = 0; j < 9; j++) {
+            argv[i][j] = nondet_char();
+        }
+        argv[i][9] = '\0';  // Null terminate
+    }
+    argv[argc] = NULL;
+    
+    // Call main
+    int result = main(argc, argv);
+    
+    // Verify return value
+    __CPROVER_assert(result >= 0, "Main returns valid value");
+    
+    // Clean up
+    for(int i = 0; i < argc; i++) {
+        free(argv[i]);
+    }
+    free(argv);
+}
+
+

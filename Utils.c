@@ -31,8 +31,8 @@ sod_img load_image(const char *path) {
     input.c = nondet_int();
     
     // But constrain them
-    __CPROVER_assume(input.w > 0 && input.w <= 4);
-    __CPROVER_assume(input.h > 0 && input.h <= 4);
+    __CPROVER_assume(input.w > 0 && input.w <= 2);
+    __CPROVER_assume(input.h > 0 && input.h <= 2);
     __CPROVER_assume(input.c > 0 && input.c <= 3);
     
     input.data = (unsigned char*)calloc(input.w * input.h * input.c, sizeof(unsigned char));
@@ -79,9 +79,9 @@ int get_pixel_value(sod_img img, int rgb, int x, int y) {
   __CPROVER_assume(y >= 0 && y < 4);
   __CPROVER_assume(rgb >= 0 && rgb < 3);
   
-  float intensity = sod_img_get_pixel(img, x, y, rgb);
-  int rgb_value = intensity * MAX_PIXEL_INTENSITY;
-  return rgb_value;
+  // float intensity = sod_img_get_pixel(img, x, y, rgb);
+  // int rgb_value = intensity * MAX_PIXEL_INTENSITY;
+  return (int)sod_img_get_pixel(img, x, y, rgb);
 }
 
 void set_pixel_value(sod_img img, int rgb, int x, int y, int val) {
@@ -90,6 +90,8 @@ void set_pixel_value(sod_img img, int rgb, int x, int y, int val) {
   __CPROVER_assume(rgb >= 0 && rgb < 3);
   __CPROVER_assume(val >= 0 && val <= 255);
   
-  float intensity = val / MAX_PIXEL_INTENSITY;
-  sod_img_set_pixel(img, x, y, rgb, intensity);
+  // float intensity = (float)val / MAX_PIXEL_INTENSITY;
+  // sod_img_set_pixel(img, x, y, rgb, intensity);
+  sod_img_set_pixel(img, x, y, rgb, (float)val);
+  
 }

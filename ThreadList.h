@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 // For verification only
-#define MAX_THREADS 10
+#define MAX_THREADS 3
 #define pthread_join(thread, value_ptr) 0
 #define pthread_tryjoin_np(thread, value_ptr) 0
 

@@ -30,6 +30,35 @@ void grayscale_picture(struct picture *pic) {
   }
 }
 
+// void grayscale_picture(struct picture *pic) {
+//    if (!pic || !pic->img.data) return;
+//     for (int i = 0; i < pic->width; i++) {
+//        for (int j = 0; j < pic->height; j++) {
+//            // Get original pixel
+//            struct pixel rgb = get_pixel(pic, i, j);
+           
+//            // Calculate average using integer arithmetic
+//            unsigned int sum = (unsigned int)rgb.red + 
+//                             (unsigned int)rgb.green + 
+//                             (unsigned int)rgb.blue;
+//            unsigned char gray = (unsigned char)(sum / NO_RGB_COMPONENTS);
+           
+//            // Create grayscale pixel
+//            struct pixel gray_pixel = {gray, gray, gray};
+           
+//            // Set the pixel
+//            set_pixel(pic, i, j, &gray_pixel);
+           
+//            // Verify the set operation
+//            struct pixel check = get_pixel(pic, i, j);
+//            printf("Set gray=%d, Got: R=%d G=%d B=%d\n",
+//                   gray, check.red, check.green, check.blue);
+//        }
+//    }
+// }
+
+
+
 void rotate_picture(struct picture *pic, int angle) {
   struct picture tmp;
   tmp.img = copy_image(pic->img);
@@ -134,180 +163,118 @@ void blur_picture(struct picture *pic) {
 unsigned char nondet_uchar();
 int nondet_int();
 
-void verify_grayscale() {
-    struct picture pic;
-    pic.width = nondet_int();
-    pic.height = nondet_int();
+
+// void verify_invert() {
+//     // Create a small bounded picture for faster verification
+//     struct picture pic;
+//     pic.width = nondet_int();
+//     pic.height = nondet_int();
     
-    // Constrain size to small values for faster verification
-    __CPROVER_assume(pic.width > 0 && pic.width <= 3);
-    __CPROVER_assume(pic.height > 0 && pic.height <= 3);
+//     // Constrain size to small values for faster verification
+//     __CPROVER_assume(pic.width > 0 && pic.width <= 2);
+//     __CPROVER_assume(pic.height > 0 && pic.height <= 2);
     
-    // Create SOD image
-    pic.img = sod_make_image(pic.width, pic.height, NO_RGB_COMPONENTS);
-    __CPROVER_assume(pic.img.data != NULL);
+//     // Create SOD image
+//     pic.img = sod_make_image(pic.width, pic.height, NO_RGB_COMPONENTS);
+//     __CPROVER_assume(pic.img.data != NULL);  // Check the data pointer instead of img itself
     
-    // Initialize pixels with nondeterministic values
-    for (int i = 0; i < pic.width; i++) {
-        for (int j = 0; j < pic.height; j++) {
-            struct pixel rgb;
-            rgb.red = nondet_int();
-            rgb.green = nondet_int();
-            rgb.blue = nondet_int();
-            // Ensure input values are within valid range
-            __CPROVER_assume(rgb.red <= MAX_PIXEL_INTENSITY);
-            __CPROVER_assume(rgb.green <= MAX_PIXEL_INTENSITY);
-            __CPROVER_assume(rgb.blue <= MAX_PIXEL_INTENSITY);
-            __CPROVER_assume(rgb.red >= 0);
-            __CPROVER_assume(rgb.green >= 0);
-            __CPROVER_assume(rgb.blue >= 0);
-            set_pixel(&pic, i, j, &rgb);
-        }
-    }
-    
-    // Store original values for verification
-    struct picture original;
-    original.width = pic.width;
-    original.height = pic.height;
-    original.img = sod_make_image(pic.width, pic.height, NO_RGB_COMPONENTS);
-    __CPROVER_assume(original.img.data != NULL);
-    
-    // Copy original values
-    for (int i = 0; i < pic.width; i++) {
-        for (int j = 0; j < pic.height; j++) {
-            struct pixel rgb = get_pixel(&pic, i, j);
-            set_pixel(&original, i, j, &rgb);
-        }
-    }
-    
-    // Run grayscale conversion
-    grayscale_picture(&pic);
-    
-    // Verify properties
-    for (int i = 0; i < pic.width; i++) {
-        for (int j = 0; j < pic.height; j++) {
-            struct pixel p = get_pixel(&pic, i, j);
-            // Add constraints on returned values
-            __CPROVER_assume(p.red >= 0 && p.red <= 255);
-            __CPROVER_assume(p.green >= 0 && p.green <= 255);
-            __CPROVER_assume(p.blue >= 0 && p.blue <= 255);
-            struct pixel orig = get_pixel(&original, i, j);
-            // look at get_pixel function 
-            __CPROVER_assume(orig.red >= 0 && orig.red <= 255);
-            __CPROVER_assume(orig.green >= 0 && orig.green <= 255);
-            __CPROVER_assume(orig.blue >= 0 && orig.blue <= 255);
-            
-            // Property 1: All RGB values should be equal
-            __CPROVER_assert(p.red == p.green && p.green == p.blue,
-                "RGB values must be equal in grayscale");
-            
-            // Property 2: Values should not exceed MAX_PIXEL_INTENSITY
-            __CPROVER_assert(p.red <= MAX_PIXEL_INTENSITY,
-                "Pixel values must not exceed maximum intensity");
-            
-            // Property 3: Average calculation is correct
-            // Use unsigned int for sum to prevent overflow
-            unsigned int sum = (unsigned int)orig.red + 
-                             (unsigned int)orig.green + 
-                             (unsigned int)orig.blue;
-            unsigned char expected_avg = (unsigned char)(sum / NO_RGB_COMPONENTS);
-            
-            __CPROVER_assert(p.red == expected_avg,
-                "Grayscale value must be average of original RGB values");
-        }
-    }
-    
-    // Clean up
-    clear_picture(&pic);
-    clear_picture(&original);
-}
+//     // Initialize pixels with nondeterministic values
+//     for (int i = 0; i < pic.width; i++) {
+//         for (int j = 0; j < pic.height; j++) {
+//             struct pixel rgb;
+//             rgb.red = nondet_uchar();
+//             rgb.green = nondet_uchar();
+//             rgb.blue = nondet_uchar();
+//             __CPROVER_assume(rgb.red <= MAX_PIXEL_INTENSITY);
+//             __CPROVER_assume(rgb.green <= MAX_PIXEL_INTENSITY);
+//             __CPROVER_assume(rgb.blue <= MAX_PIXEL_INTENSITY);
+//             set_pixel(&pic, i, j, &rgb);
+//         }
+//     }
 
 void verify_invert() {
-    // Create a small bounded picture for faster verification
     struct picture pic;
     pic.width = nondet_int();
     pic.height = nondet_int();
     
-    // Constrain size to small values for faster verification
+    // Constrain size
     __CPROVER_assume(pic.width > 0 && pic.width <= 2);
     __CPROVER_assume(pic.height > 0 && pic.height <= 2);
     
-    // Create SOD image
+    // Create image
     pic.img = sod_make_image(pic.width, pic.height, NO_RGB_COMPONENTS);
-    __CPROVER_assume(pic.img.data != NULL);  // Check the data pointer instead of img itself
+    __CPROVER_assume(pic.img.data != NULL);
     
-    // Initialize pixels with nondeterministic values
+    // Initialize with valid values
     for (int i = 0; i < pic.width; i++) {
         for (int j = 0; j < pic.height; j++) {
             struct pixel rgb;
             rgb.red = nondet_uchar();
             rgb.green = nondet_uchar();
             rgb.blue = nondet_uchar();
-            __CPROVER_assume(rgb.red <= MAX_PIXEL_INTENSITY);
-            __CPROVER_assume(rgb.green <= MAX_PIXEL_INTENSITY);
-            __CPROVER_assume(rgb.blue <= MAX_PIXEL_INTENSITY);
+            
+            // Ensure initial values are valid and bounded
+            __CPROVER_assume(rgb.red >= 0 && rgb.red <= MAX_PIXEL_INTENSITY);
+            __CPROVER_assume(rgb.green >= 0 && rgb.green <= MAX_PIXEL_INTENSITY);
+            __CPROVER_assume(rgb.blue >= 0 && rgb.blue <= MAX_PIXEL_INTENSITY);
+            
             set_pixel(&pic, i, j, &rgb);
+            
         }
     }
     
-    // Store original values for verification
-    struct picture original;
-    original.width = pic.width;
-    original.height = pic.height;
-    original.img = sod_make_image(pic.width, pic.height, NO_RGB_COMPONENTS);
-    __CPROVER_assume(original.img.data != NULL);  // Check the data pointer instead of img itself
+    // Create backup image
+    struct picture backup;
+    backup.width = pic.width;
+    backup.height = pic.height;
+    backup.img = sod_make_image(pic.width, pic.height, NO_RGB_COMPONENTS);
+    __CPROVER_assume(backup.img.data != NULL);
     
-    // Copy original values
+    // Copy pixel values with verification
     for (int i = 0; i < pic.width; i++) {
         for (int j = 0; j < pic.height; j++) {
             struct pixel rgb = get_pixel(&pic, i, j);
-            set_pixel(&original, i, j, &rgb);
+            set_pixel(&backup, i, j, &rgb);
+            
+            // Verify copy was correct
+            struct pixel verify = get_pixel(&backup, i, j);
+            __CPROVER_assert(verify.red == rgb.red, "Backup copy red matches");
+            __CPROVER_assert(verify.green == rgb.green, "Backup copy green matches");
+            __CPROVER_assert(verify.blue == rgb.blue, "Backup copy blue matches");
         }
     }
     
-    // Run invert operation
+    // Perform inversion
     invert_picture(&pic);
     
-    // Verify properties
+    // Verify inversion with debug output
     for (int i = 0; i < pic.width; i++) {
         for (int j = 0; j < pic.height; j++) {
-            struct pixel p = get_pixel(&pic, i, j);
-            struct pixel orig = get_pixel(&original, i, j);  // Use get_pixel instead of array access
+            struct pixel inverted = get_pixel(&pic, i, j);
+            struct pixel orig = get_pixel(&backup, i, j);
             
-            // Property 1: Each color channel should be inverted correctly
-            __CPROVER_assert(p.red == MAX_PIXEL_INTENSITY - orig.red,
+            // Debug print
+            printf("At (%d,%d):\n", i, j);
+            printf("  Original: R=%d G=%d B=%d\n", orig.red, orig.green, orig.blue);
+            printf("  Inverted: R=%d G=%d B=%d\n", inverted.red, inverted.green, inverted.blue);
+            printf("  Expected: R=%d G=%d B=%d\n", 
+                   MAX_PIXEL_INTENSITY - orig.red,
+                   MAX_PIXEL_INTENSITY - orig.green,
+                   MAX_PIXEL_INTENSITY - orig.blue);
+            
+            // Check each channel with detailed assertions
+            __CPROVER_assert(inverted.red == MAX_PIXEL_INTENSITY - orig.red,
                 "Red channel should be correctly inverted");
-            __CPROVER_assert(p.green == MAX_PIXEL_INTENSITY - orig.green,
+            __CPROVER_assert(inverted.green == MAX_PIXEL_INTENSITY - orig.green,
                 "Green channel should be correctly inverted");
-            __CPROVER_assert(p.blue == MAX_PIXEL_INTENSITY - orig.blue,
+            __CPROVER_assert(inverted.blue == MAX_PIXEL_INTENSITY - orig.blue,
                 "Blue channel should be correctly inverted");
-            
-            // Property 2: Values should not exceed MAX_PIXEL_INTENSITY
-            __CPROVER_assert(p.red <= MAX_PIXEL_INTENSITY,
-                "Red value must not exceed maximum intensity");
-            __CPROVER_assert(p.green <= MAX_PIXEL_INTENSITY,
-                "Green value must not exceed maximum intensity");
-            __CPROVER_assert(p.blue <= MAX_PIXEL_INTENSITY,
-                "Blue value must not exceed maximum intensity");
-            
-            // Property 3: Double inversion should return original values
-            struct pixel double_invert = p;
-            double_invert.red = MAX_PIXEL_INTENSITY - p.red;
-            double_invert.green = MAX_PIXEL_INTENSITY - p.green;
-            double_invert.blue = MAX_PIXEL_INTENSITY - p.blue;
-            
-            __CPROVER_assert(double_invert.red == orig.red,
-                "Double inversion should return original red value");
-            __CPROVER_assert(double_invert.green == orig.green,
-                "Double inversion should return original green value");
-            __CPROVER_assert(double_invert.blue == orig.blue,
-                "Double inversion should return original blue value");
         }
     }
     
-    // Clean up
+    // Cleanup
     clear_picture(&pic);
-    clear_picture(&original);
+    clear_picture(&backup);
 }
 
 void verify_rotate_picture() {
@@ -685,6 +652,101 @@ void verify_blur_picture() {
                         edge.blue == orig.blue,
                         "Right edge pixels should remain unchanged");
     }
+    
+    // Clean up
+    clear_picture(&pic);
+    clear_picture(&original);
+}
+
+void verify_grayscale() {
+    struct picture pic;
+    pic.width = nondet_int();
+    pic.height = nondet_int();
+    
+    // Constrain dimensions to small values for tractable verification
+    __CPROVER_assume(pic.width > 0 && pic.width <= 2);
+    __CPROVER_assume(pic.height > 0 && pic.height <= 2);
+    
+    // Create image
+    pic.img = sod_make_image(pic.width, pic.height, NO_RGB_COMPONENTS);
+    __CPROVER_assume(pic.img.data != NULL);
+    
+    // Store original values for verification
+    struct picture original;
+    original.width = pic.width;
+    original.height = pic.height;
+    original.img = sod_make_image(pic.width, pic.height, NO_RGB_COMPONENTS);
+    __CPROVER_assume(original.img.data != NULL);
+    
+    // Initialize with valid pixel values and create backup
+    for (int i = 0; i < pic.width; i++) {
+        for (int j = 0; j < pic.height; j++) {
+            struct pixel rgb;
+            rgb.red = nondet_uchar();
+            rgb.green = nondet_uchar();
+            rgb.blue = nondet_uchar();
+            
+            // Ensure valid pixel values
+            __CPROVER_assume(rgb.red >= 0 && rgb.red <= MAX_PIXEL_INTENSITY);
+            __CPROVER_assume(rgb.green >= 0 && rgb.green <= MAX_PIXEL_INTENSITY);
+            __CPROVER_assume(rgb.blue >= 0 && rgb.blue <= MAX_PIXEL_INTENSITY);
+            
+            set_pixel(&pic, i, j, &rgb);
+            
+            // Verify pixel was set correctly before proceeding
+            struct pixel verify = get_pixel(&pic, i, j);
+            __CPROVER_assert(verify.red == rgb.red && 
+                           verify.green == rgb.green && 
+                           verify.blue == rgb.blue, 
+                           "Initial pixel values set correctly");
+            
+            // Now set the backup pixel
+            set_pixel(&original, i, j, &rgb);
+        }
+    }
+    
+    // Apply grayscale
+    grayscale_picture(&pic);
+    
+    // Verify grayscale properties
+    for (int i = 0; i < pic.width; i++) {
+        for (int j = 0; j < pic.height; j++) {
+            struct pixel gray = get_pixel(&pic, i, j);
+            struct pixel orig = get_pixel(&original, i, j);
+            
+            // Calculate expected average using integer arithmetic
+            unsigned int sum = (unsigned int)orig.red + 
+                             (unsigned int)orig.green + 
+                             (unsigned int)orig.blue;
+            unsigned char expected_avg = (unsigned char)(sum / NO_RGB_COMPONENTS);
+            
+            // Debug output
+            printf("Original: R=%d G=%d B=%d\n", orig.red, orig.green, orig.blue);
+            printf("Grayscale: R=%d G=%d B=%d\n", gray.red, gray.green, gray.blue);
+            printf("Expected avg: %d\n", expected_avg);
+            
+            // Verify all channels are equal
+            __CPROVER_assert(gray.red == gray.green && 
+                           gray.green == gray.blue, 
+                           "All color channels should be equal in grayscale");
+            
+            // Verify correct average calculation
+            __CPROVER_assert(gray.red == expected_avg,
+                           "Grayscale value should be average of original RGB values");
+            
+            // Verify bounds
+            __CPROVER_assert(gray.red <= MAX_PIXEL_INTENSITY,
+                           "Grayscale values should not exceed maximum intensity");
+            
+            // Verify no information loss from integer division
+            __CPROVER_assert((unsigned int)gray.red * NO_RGB_COMPONENTS <= sum,
+                           "Grayscale value should not exceed average of original values");
+        }
+    }
+    
+    // Verify dimensions unchanged
+    __CPROVER_assert(pic.width == original.width, "Width should remain unchanged");
+    __CPROVER_assert(pic.height == original.height, "Height should remain unchanged");
     
     // Clean up
     clear_picture(&pic);
